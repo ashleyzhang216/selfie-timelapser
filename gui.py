@@ -3,7 +3,7 @@ from PIL import Image, ImageTk
 from pathlib import Path
 
 class DotPlacer:
-    def __init__(self, image_path):
+    def __init__(self, image_path, initial_positions=None):
         self.root = tk.Tk()
         self.root.title("Click to place red dots")
         
@@ -42,10 +42,15 @@ class DotPlacer:
         
         # Initial render
         self.resize_image()
-        
-        # Start with two dots at default positions (scaled)
-        self.place_dot(None, (self.image.width//3, self.image.height//2))
-        self.place_dot(None, (2*self.image.width//3, self.image.height//2))
+
+        # Use initial positions if provided
+        if initial_positions and len(initial_positions) == 2:
+            for pos in initial_positions:
+                self.place_dot(None, pos)
+        # else:
+        #     # Default positions if no initial positions
+        #     self.place_dot(None, (self.image.width//3, self.image.height//2))
+        #     self.place_dot(None, (2*self.image.width//3, self.image.height//2))
         
         self.root.mainloop()
     
@@ -130,11 +135,10 @@ class DotPlacer:
         self.redraw_dots()
     
     def finish(self, event):
-        if len(self.dots) == 2:
-            self.coords = [(int(x), int(y)) for x, y in self.dots]
-            self.root.destroy()
+        self.coords = [(int(x), int(y)) for x, y in self.dots]
+        self.root.destroy()
 
-def get_eye_coords(image_path):
+def get_eye_coords(image_path, initial_positions=None):
     """
     Open a GUI to place two red dots on an image, returns their coordinates.
     
@@ -144,5 +148,8 @@ def get_eye_coords(image_path):
     Returns:
         list: Two (x,y) coordinate tuples [(x1,y1), (x2,y2)] in original image coordinates
     """
-    placer = DotPlacer(image_path)
-    return placer.coords
+    placer = DotPlacer(image_path, initial_positions)
+    coords = placer.coords
+    
+    # Sort by X coordinate before returning
+    return sorted(coords, key=lambda c: c[0])
