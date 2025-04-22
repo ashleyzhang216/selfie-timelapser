@@ -4,11 +4,13 @@ from pathlib import Path
 from file_conversion import convert_heic_to_png
 from gui import get_eye_coords
 from labeling import label_images
+from transform import transform_images
 
 ROOT_DATA_PATH = "data/"
 RAW_DATA_PATH = ROOT_DATA_PATH + "raw/"
 CONVERTED_DATA_PATH = ROOT_DATA_PATH + "png/"
 EYE_DATA_PATH = ROOT_DATA_PATH + "eye_coords/"
+ALIGNED_DATA_PATH = ROOT_DATA_PATH + "aligned/"
 
 def make_dirs():
     if not os.path.exists(ROOT_DATA_PATH):
@@ -20,6 +22,8 @@ def make_dirs():
         os.makedirs(CONVERTED_DATA_PATH)
     if not os.path.exists(EYE_DATA_PATH):
         os.makedirs(EYE_DATA_PATH)
+    if not os.path.exists(ALIGNED_DATA_PATH):
+        os.makedirs(ALIGNED_DATA_PATH)
 
 if __name__ == "__main__":
     make_dirs()
@@ -31,4 +35,6 @@ if __name__ == "__main__":
     imgs = imgs[:5] # TODO: DEBUG
     print("restricted imgs to:", imgs)
 
-    label_images(imgs, CONVERTED_DATA_PATH, Path(os.path.join(EYE_DATA_PATH, "ashley" + '.json')), False)
+    eye_coords_path = Path(os.path.join(EYE_DATA_PATH, "ashley" + '.json'))
+    label_images(imgs, CONVERTED_DATA_PATH, eye_coords_path, False)
+    transform_images(imgs, CONVERTED_DATA_PATH, ALIGNED_DATA_PATH, eye_coords_path)
