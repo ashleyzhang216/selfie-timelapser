@@ -24,7 +24,7 @@ def label_images(imgs, img_dir, output_json, relabel=False):
     for img in imgs:
         try:
             path = Path(os.path.join(img_dir, img + '.png'))
-            print(f"\nProcessing: {path.name}")
+            print(f"Labeling: {path.name}")
             
             # Check if image already has coordinates
             existing_data = results.get(img)
@@ -81,5 +81,5 @@ def label_images(imgs, img_dir, output_json, relabel=False):
             print(f"Error processing {path.name}: {str(e)}")
             continue
     
-    print(f"\nAll results saved to {output_json}")
+    print(f"\nAll labeling results saved to {output_json}")
     return results

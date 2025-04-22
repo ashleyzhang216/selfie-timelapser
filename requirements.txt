@@ -2,3 +2,5 @@ Pillow>=9.0.0
 pillow_heif
 opencv-python
 imageio
+scikit-image
+tqdm
