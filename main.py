@@ -44,7 +44,7 @@ if __name__ == "__main__":
 
     eye_coords_path = Path(os.path.join(EYE_DATA_PATH, "ashley" + '.json'))
     label_images(imgs, CONVERTED_DATA_PATH, eye_coords_path, False)
-    # transform_images(imgs, CONVERTED_DATA_PATH, ALIGNED_DATA_PATH, THUMBNAIL_DATA_PATH, eye_coords_path)
+    transform_images(imgs, CONVERTED_DATA_PATH, ALIGNED_DATA_PATH, THUMBNAIL_DATA_PATH, eye_coords_path)
     imgs = order_images(imgs, THUMBNAIL_DATA_PATH, True)
 
     output_path = Path(os.path.join(OUTPUT_DATA_PATH, "ashley" + '.gif'))
