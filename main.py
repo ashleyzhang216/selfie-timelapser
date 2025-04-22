@@ -1,4 +1,5 @@
 import os
+import sys
 from file_conversion import convert_heic_to_png
 
 ROOT_DATA_PATH = "data/"
@@ -16,4 +17,8 @@ def make_dirs():
 
 if __name__ == "__main__":
     make_dirs()
-    convert_heic_to_png(RAW_DATA_PATH, CONVERTED_DATA_PATH)
+    imgs = convert_heic_to_png(RAW_DATA_PATH, CONVERTED_DATA_PATH)
+    if not imgs:
+        print("No images found")
+        sys.exit(1)
+
