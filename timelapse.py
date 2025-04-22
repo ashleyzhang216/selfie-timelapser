@@ -7,7 +7,7 @@ def timelapse_images(
     image_names,
     input_dir,
     output_path,
-    total_duration_sec,
+    total_duration_sec=15.0,
     loop=0,  # 0 = infinite loop
     optimize=True,
     fps=None,

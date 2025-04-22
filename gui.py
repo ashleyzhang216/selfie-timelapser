@@ -5,7 +5,7 @@ from pathlib import Path
 class DotPlacer:
     def __init__(self, image_path, initial_positions=None):
         self.root = tk.Tk()
-        self.root.title("Click to place red dots")
+        self.root.title("Labeling " + image_path.name)
         
         # Load image
         self.original_image = Image.open(image_path)
@@ -38,6 +38,7 @@ class DotPlacer:
         # Bind events
         self.canvas.bind("<Button-1>", self.place_dot)
         self.root.bind("<Return>", self.finish)
+        self.root.bind("<BackSpace>", self.clear_dots)
         self.root.bind("<Configure>", self.resize_image)
         
         # Initial render
@@ -130,6 +131,13 @@ class DotPlacer:
         self.dots.append((img_x, img_y))
         self.redraw_dots()
     
+    def clear_dots(self, event=None):
+        """Clear all dots from the image (bound to Backspace key)"""
+        for dot_id in self.dot_ids:
+            self.canvas.delete(dot_id)
+        self.dot_ids = []
+        self.dots = []
+
     def finish(self, event):
         self.coords = [(int(x), int(y)) for x, y in self.dots]
         self.root.destroy()

@@ -29,4 +29,5 @@ def convert_heic_to_png(input_dir, output_dir=None) -> list[str]:
         
         assert(png_path.exists() and png_path.is_file())
 
+    img_names.sort()
     return img_names

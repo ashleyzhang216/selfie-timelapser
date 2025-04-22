@@ -40,12 +40,10 @@ if __name__ == "__main__":
         print("No images found")
         sys.exit(1)
     
-    imgs = imgs[:50]
-
     eye_coords_path = Path(os.path.join(EYE_DATA_PATH, "ashley" + '.json'))
-    label_images(imgs, CONVERTED_DATA_PATH, eye_coords_path, False)
+    imgs = label_images(imgs, CONVERTED_DATA_PATH, eye_coords_path, False)
     transform_images(imgs, CONVERTED_DATA_PATH, ALIGNED_DATA_PATH, THUMBNAIL_DATA_PATH, eye_coords_path)
     imgs = order_images(imgs, THUMBNAIL_DATA_PATH, True)
 
     output_path = Path(os.path.join(OUTPUT_DATA_PATH, "ashley" + '.gif'))
-    timelapse_images(imgs, ALIGNED_DATA_PATH, output_path, 20.0, resize_to=(1024, 768))
+    timelapse_images(imgs, ALIGNED_DATA_PATH, output_path, fps=8, resize_to=(1024, 768))

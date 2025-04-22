@@ -21,6 +21,7 @@ def label_images(imgs, img_dir, output_json, relabel=False):
     else:
         results = {}
     
+    valid_imgs = []
     for img in imgs:
         try:
             path = Path(os.path.join(img_dir, img + '.png'))
@@ -29,6 +30,8 @@ def label_images(imgs, img_dir, output_json, relabel=False):
             # Check if image already has coordinates
             existing_data = results.get(img)
             if existing_data and not relabel:
+                if existing_data["left_eye"] is not None and existing_data["right_eye"] is not None:
+                    valid_imgs.append(img)
                 print(f"Skipping (already labeled, relabel=False)")
                 continue
             
@@ -73,6 +76,7 @@ def label_images(imgs, img_dir, output_json, relabel=False):
                 json.dump(results, f, indent=2)
             
             if coords and len(coords) == 2:
+                valid_imgs.append(img)
                 print(f"Saved eye coords data for {path.name}")
             else:
                 print(f"Saved null data for {path.name}")
@@ -82,4 +86,4 @@ def label_images(imgs, img_dir, output_json, relabel=False):
             continue
     
     print(f"\nAll labeling results saved to {output_json}")
-    return results
+    return valid_imgs

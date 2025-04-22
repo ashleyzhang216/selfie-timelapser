@@ -133,5 +133,5 @@ def order_images(imgs, img_dir, greedy=True):
     ordered_names = optimizer.find_optimal_order(method='greedy' if greedy else 'tsp')
 
     print("Ordering:", ordered_names)
-    optimizer.visualize_transitions(ordered_names)
+    # optimizer.visualize_transitions(ordered_names)
     return ordered_names
