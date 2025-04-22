@@ -47,10 +47,6 @@ class DotPlacer:
         if initial_positions and len(initial_positions) == 2:
             for pos in initial_positions:
                 self.place_dot(None, pos)
-        # else:
-        #     # Default positions if no initial positions
-        #     self.place_dot(None, (self.image.width//3, self.image.height//2))
-        #     self.place_dot(None, (2*self.image.width//3, self.image.height//2))
         
         self.root.mainloop()
     

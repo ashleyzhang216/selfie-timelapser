@@ -27,14 +27,14 @@ def label_images(imgs, img_dir, output_json, relabel=False):
             print(f"\nProcessing: {path.name}")
             
             # Check if image already has coordinates
-            existing_data = results.get(path.name)
+            existing_data = results.get(img)
             if existing_data and not relabel:
                 print(f"Skipping (already labeled, relabel=False)")
                 continue
             
             # Get image dimensions
-            with Image.open(path) as img:
-                width, height = img.size
+            with Image.open(path) as image:
+                width, height = image.size
             
             # Get existing coordinates if available
             initial_coords = None
@@ -62,7 +62,7 @@ def label_images(imgs, img_dir, output_json, relabel=False):
                 }
             
             # Update results
-            results[path.name] = {
+            results[img] = {
                 "width": width,
                 "height": height,
                 **eye_data
