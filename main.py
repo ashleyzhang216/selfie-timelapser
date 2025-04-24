@@ -16,6 +16,8 @@ ALIGNED_DATA_PATH = ROOT_DATA_PATH + "aligned/"
 THUMBNAIL_DATA_PATH = ROOT_DATA_PATH + "thumbnails/"
 OUTPUT_DATA_PATH = ROOT_DATA_PATH + "out/"
 
+TARGET = "yvette"
+
 def make_dirs():
     if not os.path.exists(ROOT_DATA_PATH):
         os.makedirs(ROOT_DATA_PATH)
@@ -40,10 +42,10 @@ if __name__ == "__main__":
         print("No images found")
         sys.exit(1)
     
-    eye_coords_path = Path(os.path.join(EYE_DATA_PATH, "ashley" + '.json'))
+    eye_coords_path = Path(os.path.join(EYE_DATA_PATH, TARGET + '.json'))
     imgs = label_images(imgs, CONVERTED_DATA_PATH, eye_coords_path, False)
     transform_images(imgs, CONVERTED_DATA_PATH, ALIGNED_DATA_PATH, THUMBNAIL_DATA_PATH, eye_coords_path)
-    imgs = order_images(imgs, THUMBNAIL_DATA_PATH, True)
+    imgs = order_images(imgs, THUMBNAIL_DATA_PATH, True, first="IMG_2728", last="IMG_4241")
 
-    output_path = Path(os.path.join(OUTPUT_DATA_PATH, "ashley" + '.gif'))
-    timelapse_images(imgs, ALIGNED_DATA_PATH, output_path, fps=8, resize_to=(1024, 768))
+    output_path = Path(os.path.join(OUTPUT_DATA_PATH, TARGET))
+    timelapse_images(imgs, ALIGNED_DATA_PATH, output_path, fps=10, resize_to=(1024, 768))

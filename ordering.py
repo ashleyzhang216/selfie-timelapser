@@ -53,32 +53,91 @@ class TimelapseOptimizer:
                 self.distance_matrix[i,j] = dist
                 self.distance_matrix[j,i] = dist
 
-    def find_optimal_order(self, method='greedy'):
+    def find_optimal_order(self, method='greedy', first_image=None, last_image=None):
         """
         Find ordering with minimal total transition distance
         Methods: 'greedy' (fast) or 'tsp' (optimal but slower)
+        
+        Args:
+            method: 'greedy' or 'tsp'
+            first_image: Optional image name to force as first in sequence
+            last_image: Optional image name to force as last in sequence
         """
         if method == 'greedy':
-            return self._greedy_ordering()
+            return self._greedy_ordering(first_image, last_image)
         elif method == 'tsp':
+            if first_image or last_image:
+                print("Warning: First/last image constraints not implemented for TSP method")
             return self._tsp_ordering()
         else:
             raise ValueError("Method must be 'greedy' or 'tsp'")
 
-    def _greedy_ordering(self):
-        """Fast approximate solution (O(n^2))"""
-        print("Finding greedy ordering...")
-        remaining = set(range(self.n))
-        order = [np.random.choice(list(remaining))]
-        remaining.remove(order[0])
+    # def _greedy_ordering(self):
+    #     """Fast approximate solution (O(n^2))"""
+    #     print("Finding greedy ordering...")
+    #     remaining = set(range(self.n))
+    #     order = [np.random.choice(list(remaining))]
+    #     remaining.remove(order[0])
         
-        pbar = tqdm(total=self.n-1)
+    #     pbar = tqdm(total=self.n-1)
+    #     while remaining:
+    #         last = order[-1]
+    #         nearest = min(remaining, key=lambda x: self.distance_matrix[last,x])
+    #         order.append(nearest)
+    #         remaining.remove(nearest)
+    #         pbar.update(1)
+    #     pbar.close()
+        
+    #     return [self.image_names[i] for i in order]
+
+    def _greedy_ordering(self, first_image=None, last_image=None):
+        """Fast approximate solution (O(n^2)) with optional first/last image constraints"""
+        print("Finding greedy ordering...")
+        
+        remaining = set(range(self.n))
+        order = []
+        
+        # Handle first image constraint
+        if first_image:
+            try:
+                first_idx = self.image_names.index(first_image)
+                order.append(first_idx)
+                remaining.remove(first_idx)
+            except ValueError:
+                print(f"Warning: First image '{first_image}' not found, using random start")
+        
+        # If no first image specified or not found, start randomly
+        if not order:
+            order.append(np.random.choice(list(remaining)))
+            remaining.remove(order[0])
+        
+        # Handle last image constraint
+        last_idx = None
+        if last_image:
+            try:
+                last_idx = self.image_names.index(last_image)
+                if last_idx in remaining:
+                    remaining.remove(last_idx)
+                else:
+                    print(f"Warning: Last image '{last_image}' already used, ignoring")
+                    last_idx = None
+            except ValueError:
+                print(f"Warning: Last image '{last_image}' not found, ignoring")
+        
+        # Build the middle part of the sequence
+        pbar = tqdm(total=len(remaining) - (1 if last_idx is not None else 0))
         while remaining:
             last = order[-1]
             nearest = min(remaining, key=lambda x: self.distance_matrix[last,x])
             order.append(nearest)
             remaining.remove(nearest)
             pbar.update(1)
+        
+        # Add the last image if specified
+        if last_idx is not None:
+            order.append(last_idx)
+            pbar.update(1)
+        
         pbar.close()
         
         return [self.image_names[i] for i in order]
@@ -127,10 +186,10 @@ class TimelapseOptimizer:
         plt.grid(True)
         plt.show()
 
-def order_images(imgs, img_dir, greedy=True):
+def order_images(imgs, img_dir, greedy=True, first=None, last=None):
     optimizer = TimelapseOptimizer(imgs, img_dir)
 
-    ordered_names = optimizer.find_optimal_order(method='greedy' if greedy else 'tsp')
+    ordered_names = optimizer.find_optimal_order(method='greedy' if greedy else 'tsp', first_image=first, last_image=last)
 
     print("Ordering:", ordered_names)
     # optimizer.visualize_transitions(ordered_names)

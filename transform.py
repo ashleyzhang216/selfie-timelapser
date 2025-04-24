@@ -91,6 +91,6 @@ def transform_images(imgs, src_dir, dest_dir, thumbnail_dir, coords_file):
     transformer = ImageTransformer(coords_file)
 
     for img in imgs:
-        transformer.transform_image(img, src_dir, dest_dir, thumbnail_dir, (0.345, 0.521), (0.438, 0.521))
+        transformer.transform_image(img, src_dir, dest_dir, thumbnail_dir, (0.445, 0.621), (0.538, 0.621))
 
     print(f"\nAll aligned images saved to {dest_dir}")

@@ -2,34 +2,44 @@ import os
 import imageio
 from pathlib import Path
 from PIL import Image
+import cv2
+import numpy as np
 
 def timelapse_images(
     image_names,
     input_dir,
     output_path,
-    total_duration_sec=15.0,
-    loop=0,  # 0 = infinite loop
+    total_duration_sec=20.0,
+    loop=0,  # 0 = infinite loop (only for GIF)
     optimize=True,
     fps=None,
-    resize_to=None
+    resize_to=None,
+    output_format='both'  # 'both', 'gif', or 'mp4'
 ):
     """
-    Create a timelapse GIF from aligned images
+    Create a timelapse from aligned images
     
     Args:
         image_names: List of image filenames (without extension)
         input_dir: Directory containing the aligned PNG images
-        output_path: Where to save the GIF (e.g., 'output/timelapse.gif')
+        output_path: Where to save the output file
         total_duration_sec: Total duration for all images in seconds
-        loop: Number of loops (0 = infinite)
-        optimize: Whether to optimize GIF for smaller size
+        loop: Number of loops (0 = infinite, GIF only)
+        optimize: Whether to optimize output for smaller size
         fps: Optional: Force specific FPS instead of calculating from duration
         resize_to: Optional: (width, height) to resize images
+        output_format: 'both', 'gif', or 'mp4'
     """
     # Prepare paths
     input_dir = Path(input_dir)
     output_path = Path(output_path)
     output_path.parent.mkdir(parents=True, exist_ok=True)
+    
+    # Determine output format
+    if output_format == 'auto':
+        output_format = output_path.suffix.lower()[1:]  # Remove dot
+        if output_format not in ['both', 'gif', 'mp4']:
+            raise ValueError(f"Unsupported output format: {output_format}")
     
     # Load and optionally resize images
     frames = []
@@ -41,16 +51,28 @@ def timelapse_images(
                     img = img.resize(resize_to, Image.LANCZOS)
                 frames.append(img.copy())
         else:
-            print(f"Skipping timelapsing {img_name} - no aligned version present")
+            print(f"Skipping {img_name} - no aligned version present")
     
-    # Calculate frame duration
+    if not frames:
+        raise ValueError("No valid images found for timelapse")
+    
+    # Calculate frame duration/rate
     num_images = len(frames)
     if fps:
-        duration_ms = 1000 / fps  # Convert fps to milliseconds per frame
+        frame_duration = 1/fps
     else:
-        duration_ms = (total_duration_sec * 1000) / num_images
+        frame_duration = total_duration_sec / num_images
     
-    # Save as GIF
+    # Save in appropriate format
+    if output_format == 'gif' or output_format == 'both':
+        _save_as_gif(frames, output_path.with_suffix('.gif'), frame_duration, loop, optimize)
+    if output_format == 'mp4' or output_format == 'both':
+        _save_as_mp4(frames, output_path.with_suffix('.mp4'), frame_duration, fps, resize_to)        
+
+def _save_as_gif(frames, output_path, frame_duration, loop, optimize):
+    """Save frames as animated GIF"""
+    duration_ms = frame_duration * 1000  # Convert to milliseconds
+    
     frames[0].save(
         output_path,
         format='GIF',
@@ -60,77 +82,33 @@ def timelapse_images(
         loop=loop,
         optimize=optimize
     )
-    
-    print(f"Created timelapse with {num_images} frames at {output_path}")
+    print(f"Created GIF timelapse with {len(frames)} frames at {output_path}")
     print(f"Frame duration: {duration_ms:.1f}ms ({1000/duration_ms:.1f} FPS)")
 
-# import os
-# import multiprocessing
-# from concurrent.futures import ProcessPoolExecutor  # Changed from ThreadPool
-# from PIL import Image
-# import imageio
-# import numpy as np
-# from pathlib import Path
-
-# def load_and_process_image(args):
-#     """Worker function for parallel processing"""
-#     img_path, resize_to = args
-#     try:
-#         with Image.open(img_path) as img:
-#             if resize_to:
-#                 img = img.resize(resize_to, Image.LANCZOS)
-#             return np.array(img)
-#     except Exception as e:
-#         print(f"Error processing {img_path}: {str(e)}")
-#         return None
-
-# def timelapse_images(
-#     image_names,
-#     input_dir,
-#     output_path,
-#     total_duration_sec,
-#     loop=0,
-#     optimize=True,
-#     fps=None,
-#     resize_to=None
-# ):
-#     input_dir = Path(input_dir)
-#     output_path = Path(output_path)
-#     output_path.parent.mkdir(parents=True, exist_ok=True)
-
-#     # Calculate duration
-#     num_images = len(image_names)
-#     duration_ms = (1000 / fps) if fps else (total_duration_sec * 1000) / num_images
-
-#     # Prepare tasks - using all CPU cores
-#     cpu_count = multiprocessing.cpu_count()
-#     print(f"Using {cpu_count} CPU cores for timelapsing")
+def _save_as_mp4(frames, output_path, frame_duration, fps, resize_to):
+    """Save frames as MP4 video"""
+    if fps is None:
+        fps = 1 / frame_duration
     
-#     args = [(input_dir / f"{name}.png", resize_to) for name in image_names]
+    # Convert PIL Images to numpy arrays
+    frames_np = [np.array(frame) for frame in frames]
     
-#     # Process images in parallel
-#     with ProcessPoolExecutor(max_workers=cpu_count) as executor:
-#         frames = list(executor.map(load_and_process_image, args))
+    # Get dimensions from first frame
+    height, width = frames_np[0].shape[:2]
     
-#     frames = [f for f in frames if f is not None]
+    # Initialize video writer
+    fourcc = cv2.VideoWriter_fourcc(*'mp4v')
+    video = cv2.VideoWriter(str(output_path), fourcc, fps, (width, height))
     
-#     if not frames:
-#         raise ValueError("No valid images processed")
-
-#     # Create timelapse
-#     print("Compiling final timelapse...")
-#     with imageio.get_writer(
-#         output_path,
-#         mode='I',
-#         duration=duration_ms/1000,
-#         loop=loop,
-#         subrectangles=True,
-#         palettesize=256,
-#         quantizer='wu' if optimize else None
-#     ) as writer:
-#         for frame in frames:
-#             writer.append_data(frame)
-
-#     print(f"Created timelapse with {len(frames)} frames")
-#     print(f"Frame duration: {duration_ms:.1f}ms ({1000/duration_ms:.1f} FPS)")
-
+    if not video.isOpened():
+        raise RuntimeError("Failed to initialize video writer")
+    
+    # Write frames
+    for frame in frames_np:
+        # Convert RGB to BGR for OpenCV
+        frame_bgr = cv2.cvtColor(frame, cv2.COLOR_RGB2BGR)
+        video.write(frame_bgr)
+    
+    video.release()
+    print(f"Created MP4 timelapse with {len(frames)} frames at {output_path}")
+    print(f"Output resolution: {width}x{height}, FPS: {fps:.1f}")
